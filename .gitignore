@@ -1,0 +1,109 @@
+# Dependencies
+node_modules/
+.nyc_output/
+coverage/
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# macOS
+.DS_Store
+*.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.com.apple.receipts.bom
+.com.apple.receipts.installreceipt
+.installerReceipts
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Linux
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Grunt intermediate storage (used by grunt-contrib-jade's "ver" option)
+.historical
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (http://npmjs.org/doc/faq.html#Can-I-exclude-installed-dependencies-from-being-copied-into-the-repository)
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env.test
+
+# nyc test coverage
+.nyc_output/
+
+# Hard-source webpack plugin
+.node_modules/.cache
+
+# macOS specific build files
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xcuserdatad/
+
+# Swift Package Manager
+.swiftPM/
+.build/
+.swiftpm/xcode/package.xcworkspace/xcuserdata/
+*.swiftpm
+
+# Temporary files
+tmp/
+temp/
