@@ -29,9 +29,16 @@ class User {
         throw new Error('User already exists with this email');
       }
 
-      // Hash password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
+      let hashedPassword;
+      if (password) {
+        // Hash password if provided (for regular registration)
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(password, salt);
+      } else {
+        // For social auth, create a placeholder password
+        const salt = await bcrypt.genSalt(10);
+        hashedPassword = await bcrypt.hash(Math.random().toString(36).slice(-8), salt);
+      }
 
       const result = await pool.query(
         `INSERT INTO users (name, email, password, avatar, role, is_active)
@@ -87,9 +94,19 @@ class User {
            GROUP BY u.id`,
           [query.email.toLowerCase()]
         );
+      } else if (query.id) {
+        result = await pool.query(
+          `SELECT u.*,
+                  COALESCE(json_agg(sa.*) FILTER (WHERE sa.id IS NOT NULL), '[]') as social_accounts
+           FROM users u
+           LEFT JOIN social_accounts sa ON u.id = sa.user_id
+           WHERE u.id = $1
+           GROUP BY u.id`,
+          [query.id]
+        );
       } else {
         // For other queries, we can expand as needed
-        throw new Error('Query not implemented');
+        throw new Error('Query not implemented: Only email and id queries are supported');
       }
 
       if (result.rows.length === 0) {
@@ -290,7 +307,8 @@ class User {
       const result = await pool.query(
         `INSERT INTO social_accounts (user_id, provider, provider_id, email, name)
          VALUES ($1, $2, $3, $4, $5)
-         ON CONFLICT (user_id, provider, provider_id) DO NOTHING
+         ON CONFLICT ON CONSTRAINT social_accounts_user_id_provider_provider_id_key
+         DO UPDATE SET name = EXCLUDED.name, email = EXCLUDED.email
          RETURNING *`,
         [userId, socialAccountData.provider, socialAccountData.providerId, socialAccountData.email, socialAccountData.name]
       );

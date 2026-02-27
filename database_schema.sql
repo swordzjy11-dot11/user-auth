@@ -64,7 +64,8 @@ CREATE TABLE social_accounts (
   email VARCHAR(255), -- Email from social provider (if available)
   name VARCHAR(255), -- Name from social provider
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (user_id, provider, provider_id) -- Ensure one account per provider per user
 );
 
 -- Indexes for social accounts table
