@@ -13,6 +13,17 @@ const { pool } = require('../db'); // Need to import pool for reset password
 
 const router = express.Router();
 
+// @desc    Health check
+// @route   GET /api/auth/
+// @access  Public
+router.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Auth service is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public

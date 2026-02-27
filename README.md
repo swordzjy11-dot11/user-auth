@@ -50,9 +50,22 @@ WECHAT_APP_ID=your-wechat-app-id
 WECHAT_APP_SECRET=your-wechat-app-secret
 
 # Server
-PORT=5000
+PORT=5001
 NODE_ENV=development
 ```
+
+## OAuth Setup
+
+To use Google OAuth, you'll need to:
+
+1. Create a project in the [Google Cloud Console](https://console.cloud.google.com/)
+2. Enable the Google People API
+3. Create OAuth 2.0 credentials with authorized redirect URIs:
+   - `http://localhost:3000/api/auth/google/callback`
+   - `http://localhost:3000/api/auth/google/callback?callback=popup`
+4. Replace the placeholder values in your `.env` file with your actual Google OAuth credentials
+
+For more detailed instructions, see [OAUTH_SETUP.md](./OAUTH_SETUP.md).
 
 ## Running the Application
 
@@ -94,7 +107,7 @@ npm start
 - `POSTGRES_URI`: Your PostgreSQL connection string
 - `JWT_SECRET`: Secret key for JWT signing (should be a long, random string)
 - `JWT_EXPIRE`: JWT expiration time (e.g., '7d' for 7 days)
-- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: Google OAuth credentials
+- `GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`: Google OAuth credentials (see [OAUTH_SETUP.md](./OAUTH_SETUP.md) for setup instructions)
 - `WECHAT_APP_ID` & `WECHAT_APP_SECRET`: WeChat OAuth credentials
 - `PORT`: Port number for the server (default: 5000)
 - `NODE_ENV`: Environment (development/production)
