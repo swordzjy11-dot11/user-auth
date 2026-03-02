@@ -4,8 +4,8 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
-// Configure proxy for all HTTPS requests
-if (process.env.HTTPS_PROXY) {
+// Configure proxy for all HTTPS requests - only if not in test environment
+if (process.env.HTTPS_PROXY && process.env.NODE_ENV !== 'test') {
   const { HttpsProxyAgent } = require('https-proxy-agent');
   const proxyAgent = new HttpsProxyAgent(process.env.HTTPS_PROXY);
 
@@ -65,8 +65,31 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server started on port ${PORT}`);
-});
+// Only start server if this file is run directly (not imported)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server started on port ${PORT}`);
+  });
+}
+
+ // Add monitoring endpoints                                                                                                                                                                               
+  app.get('/health', (req, res) => {                                                                                                                                                                        
+    res.status(200).json({                                                                                                                                                                                  
+      status: 'ok',                                                                                                                                                                                         
+      timestamp: new Date().toISOString(),                                                                                                                                                                  
+      uptime: process.uptime(),                                                                                                                                                                             
+      memory: process.memoryUsage()                                                                                                                                                                         
+    });                                                                                                                                                                                                     
+  });                                                                                                                                                                                                       
+                                                                                                                                                                                                            
+  app.get('/ready', async (req, res) => {                                                                                                                                                                   
+    // Check if database is accessible                                                                                                                                                                      
+    try {                                                                                                                                                                                                   
+      await pool.query('SELECT 1');                                                                                                                                                                         
+      res.status(200).json({ status: 'ready' });                                                                                                                                                            
+    } catch (error) {                                                                                                                                                                                       
+      res.status(503).json({ status: 'not ready', error: error.message });                                                                                                                                  
+    }                                                                                                                                                                                                       
+  });  
 
 module.exports = app;

@@ -76,7 +76,7 @@ class AuthManager: ObservableObject {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let baseURL = "http://localhost:5000/api/auth"
+    private let baseURL = "http://localhost:3000/api/auth"
     private let userDefaults = UserDefaults.standard
     private let tokenKey = "AuthToken"
 
@@ -168,8 +168,11 @@ class AuthManager: ObservableObject {
         let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
 
         if let token = authResponse.token {
-            saveToken(token)
-            currentUser = authResponse.user
+            // Dispatch UI updates to the main thread
+            await MainActor.run {
+                saveToken(token)
+                currentUser = authResponse.user
+            }
         }
     }
 
@@ -202,8 +205,11 @@ class AuthManager: ObservableObject {
         let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
 
         if let token = authResponse.token {
-            saveToken(token)
-            currentUser = authResponse.user
+            // Dispatch UI updates to the main thread
+            await MainActor.run {
+                saveToken(token)
+                currentUser = authResponse.user
+            }
         }
     }
 
@@ -263,7 +269,11 @@ class AuthManager: ObservableObject {
 
         // The backend sends a reset token which we could treat as verification
         let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
-        print("Verification/reset token: \(authResponse.resetToken ?? "none")")
+
+        // Dispatch UI updates to the main thread
+        await MainActor.run {
+            print("Verification/reset token: \(authResponse.resetToken ?? "none")")
+        }
     }
 
     // Verify code and complete registration
@@ -294,8 +304,11 @@ class AuthManager: ObservableObject {
         let authResponse = try JSONDecoder().decode(AuthResponse.self, from: data)
 
         if let token = authResponse.token {
-            saveToken(token)
-            currentUser = authResponse.user
+            // Dispatch UI updates to the main thread
+            await MainActor.run {
+                saveToken(token)
+                currentUser = authResponse.user
+            }
         }
     }
 

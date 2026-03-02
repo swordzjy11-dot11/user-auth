@@ -2,16 +2,75 @@ import SwiftUI
 
 struct RegisterView: View {
     @EnvironmentObject var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var email = ""
     @State private var password = ""
     @State private var confirmPassword = ""
-    @State private var showingVerificationView = false
+    @State private var showingVerificationStep = false
     @State private var verificationCode = ""
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
+        VStack(spacing: 20) {
+            if showingVerificationStep {
+                // Verification Step
+                VStack(spacing: 20) {
+                    Text("Verify Your Email")
+                        .font(.largeTitle)
+                        .fontWeight(.bold)
+
+                    Text("Enter the verification code sent to \(email)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+
+                    TextField("Verification Code", text: $verificationCode)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(width: 200)
+                        .multilineTextAlignment(.center)
+
+                    Button(action: verifyCode) {
+                        HStack {
+                            if authManager.isLoading {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                            Text("Verify Code")
+                                .fontWeight(.semibold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                    }
+                    .disabled(authManager.isLoading || verificationCode.count != 6)
+
+                    if isResendDisabled {
+                        Text("Resend code in \(secondsRemaining)s")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        Button("Resend Verification Code") {
+                            resendCode()
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .foregroundColor(.blue)
+                    }
+
+                    Button("Back to Sign Up") {
+                        showingVerificationStep = false
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .foregroundColor(.secondary)
+                    .font(.caption)
+                }
+                .onAppear {
+                    sendVerificationCode()
+                    startTimer()
+                }
+            } else {
+                // Registration Step
                 Text("Create Account")
                     .font(.largeTitle)
                     .fontWeight(.bold)
@@ -52,18 +111,10 @@ struct RegisterView: View {
                     .cornerRadius(10)
                 }
                 .disabled(authManager.isLoading || !isFormValid)
-
-                NavigationLink(destination: VerificationView(
-                    email: email,
-                    name: name,
-                    password: password
-                ).environmentObject(authManager), isActive: $showingVerificationView) {
-                    EmptyView()
-                }
             }
-            .padding(40)
-            .frame(minWidth: 400, minHeight: 500)
         }
+        .padding(40)
+        .frame(minWidth: 400, minHeight: 500)
     }
 
     private var isFormValid: Bool {
@@ -74,11 +125,55 @@ struct RegisterView: View {
         Task {
             do {
                 try await authManager.register(name: name, email: email, password: password)
-                // After registration, we might need to handle verification
-                // For now, showing a verification view
-                showingVerificationView = true
+                // After successful registration, show the verification view
+                showingVerificationStep = true
             } catch {
                 authManager.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    // State variables for verification
+    @State private var secondsRemaining = 60
+    @State private var isResendDisabled = true
+
+    private func sendVerificationCode() {
+        Task {
+            do {
+                try await authManager.sendVerificationCode(to: email)
+            } catch {
+                authManager.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func verifyCode() {
+        // For now, we'll use the login API to complete registration
+        Task {
+            do {
+                try await authManager.login(email: email, password: password)
+                dismiss() // Close the registration sheet
+            } catch {
+                authManager.errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    private func resendCode() {
+        sendVerificationCode()
+        secondsRemaining = 60
+        isResendDisabled = true
+    }
+
+    private func startTimer() {
+        DispatchQueue.main.async {
+            Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                if secondsRemaining > 0 {
+                    secondsRemaining -= 1
+                } else {
+                    isResendDisabled = false
+                    timer.invalidate()
+                }
             }
         }
     }
@@ -87,6 +182,7 @@ struct RegisterView: View {
 // Verification view for email verification code
 struct VerificationView: View {
     @EnvironmentObject var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
     @State private var verificationCode = ""
     @State private var secondsRemaining = 60
     @State private var isResendDisabled = true
@@ -140,8 +236,8 @@ struct VerificationView: View {
                 .foregroundColor(.blue)
             }
 
-            Button("Back to Sign Up") {
-                // Go back to registration
+            Button("Close") {
+                dismiss()
             }
             .buttonStyle(PlainButtonStyle())
             .foregroundColor(.secondary)

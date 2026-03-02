@@ -63,7 +63,7 @@ swift run AuthClient
 
 ## Configuration
 
-The application expects the backend API to be running at `http://localhost:5000`. To use a different endpoint:
+The application expects the backend API to be running at `http://localhost:5001`. To use a different endpoint:
 
 1. Update the `baseURL` property in `AuthManager.swift`
 2. Ensure CORS settings in the backend allow the application domain

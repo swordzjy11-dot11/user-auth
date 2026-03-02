@@ -85,6 +85,14 @@
     </div>
 
     <div class="section">
+        <h2>Update Profile Test</h2>
+        <input type="text" id="updateName" placeholder="New Name">
+        <input type="email" id="updateEmail" placeholder="New Email">
+        <button onclick="updateUserProfile()">Update Profile</button>
+        <div id="update-response" class="response"></div>
+    </div>
+
+    <div class="section">
         <h2>Registration Test</h2>
         <input type="text" id="regName" placeholder="Name" value="Test User">
         <input type="email" id="regEmail" placeholder="Email" value="test@example.com">
@@ -250,6 +258,51 @@
                     localStorage.setItem('authToken', data.token);
                     document.getElementById('current-token').textContent = data.token;
                     responseDiv.innerHTML = `<div class="success"><strong>Login Successful!</strong><br>${JSON.stringify(data, null, 2)}</div>`;
+                } else {
+                    responseDiv.innerHTML = `<div class="error"><strong>Error ${response.status}:</strong><br>${JSON.stringify(data, null, 2)}</div>`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="error"><strong>Error:</strong> ${error.message}</div>`;
+            }
+        }
+
+        async function updateUserProfile() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                document.getElementById('update-response').innerHTML = '<div class="error">No token available. Please login first.</div>';
+                return;
+            }
+
+            const name = document.getElementById('updateName').value.trim();
+            const email = document.getElementById('updateEmail').value.trim();
+
+            // Only include fields that are provided
+            const updateData = {};
+            if (name) updateData.name = name;
+            if (email) updateData.email = email;
+
+            if (Object.keys(updateData).length === 0) {
+                document.getElementById('update-response').innerHTML = '<div class="error">Please provide at least one field to update (name or email).</div>';
+                return;
+            }
+
+            const responseDiv = document.getElementById('update-response');
+            responseDiv.innerHTML = '<em>Updating profile...</em>';
+
+            try {
+                const response = await fetch(`${API_BASE}/me`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    responseDiv.innerHTML = `<div class="success"><strong>Profile Updated Successfully!</strong><br>${JSON.stringify(data, null, 2)}</div>`;
                 } else {
                     responseDiv.innerHTML = `<div class="error"><strong>Error ${response.status}:</strong><br>${JSON.stringify(data, null, 2)}</div>`;
                 }
